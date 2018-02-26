@@ -188,8 +188,7 @@ def run_post(argv):
                 hsofsPath + 'hsofs.' + args.stormID + '.' + \
                 args.stormCycle + '.' + e + '.points.waterlevel.nc'
         cwl.append ( csdlpy.estofs.getPointsWaterlevel (stationsFile) )   
-    print cwl    
-        
+    # TODO plot time series    
 
     #7. Clean up temporary folder
 
