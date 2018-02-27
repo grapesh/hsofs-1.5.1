@@ -5,7 +5,7 @@ matplotlib.use('Agg',warn=False)
 import matplotlib.pyplot as plt
 
 #==============================================================================
-def plot_maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
+def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     
     # Default plotting limits, based on advisory track, first position
     lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5

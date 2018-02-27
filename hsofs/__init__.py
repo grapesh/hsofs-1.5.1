@@ -1,3 +1,3 @@
 import hsofs
 from .version import __version__
-__all__ = ['post','plot_maxele']
+__all__ = ['post','plot']
