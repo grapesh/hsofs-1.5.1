@@ -3,7 +3,7 @@
 export platform="/users/svinogra/mirrors/wcoss/surge"
 
 export myModules=${platform}"/gpfs/hps3/nos/noscrub/nwprod/csdlpy-1.5.1"
-export pythonCode=${platform}"/gpfs/hps3/nos/noscrub/nwprod/hsofs-1.5.1/hsofs/hsofs_post.py"
+export pythonCode=${platform}"/gpfs/hps3/nos/noscrub/nwprod/hsofs-1.5.1/hsofs/post.py"
 export logFile=${platform}"/gpfs/hps3/nos/noscrub/polar/hsofs/hsofs_post.log"
 
 export hsofsDir=${platform}"/gpfs/hps/nco/ops/com/hsofs/prod/"
