@@ -9,7 +9,6 @@ import os,sys
 import argparse
 import glob
 import csdlpy
-import numpy as np
 import datetime
 
 #==============================================================================
