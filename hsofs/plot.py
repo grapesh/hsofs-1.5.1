@@ -48,3 +48,44 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     plt.text (lonmax,latmax, str(np.round(maxmax,1)),color='k',fontsize=10)
     csdlpy.plotter.save(titleStr, plotFile)
     plt.close(f) 
+
+#==============================================================================
+def stations (ensFiles, pp, titleStr, plotPath):
+
+    # Download master list
+    masterListRemote = pp['Stations']['url']
+    masterListLocal  = 'masterlist.tmp'
+    csdlpy.transfer.download(masterListRemote, masterListLocal)
+    master = csdlpy.obs.parse.stationsList (masterListLocal, ['NOSID','Name'])  
+    print master
+    
+    # Collect all ensembles
+    cwl = []
+    for e in ensFiles:
+        cwl.append(csdlpy.estofs.getPointsWaterlevel (e))
+    nStations = len(cwl[0]['stations'])
+    print '[info]: Plotting ' + str(nStations) + ' point stations.'
+    
+    for n in range(nStations):
+        # Get data from master list
+        station = cwl[0]['stations'][n]
+        stationName = station
+        for m in master:
+            if station in m[0]:
+                stationName = m[1]
+                break
+        print stationName
+        
+        plt.figure(figsize=(20,4.5))
+
+        for e in range(len(ensFiles)):
+            plt.plot(cwl[e]['time'], cwl[e]['zeta'][:,n], color='c',label='')
+    
+        plt.legend(bbox_to_anchor=(0.9, 0.35))
+        plt.grid()
+        plt.xlabel('DATE UTC')
+        plt.ylabel('WL, meters LMSL')
+        plt.title(stationName)
+        plt.savefig(plotPath + str(n).zfill(3) + '.png')
+        plt.close()
+        
