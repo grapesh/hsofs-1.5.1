@@ -13,9 +13,9 @@ import datetime
 
 #==============================================================================
 def timestamp():
-    print '[    ]'
+    print '-    -'
     print '[Time]: ' + str(datetime.datetime.utcnow()) + ' UTC'
-    print '[    ]'
+    print '-    -'
     
 #==============================================================================
 def read_cmd_argv (argv):
@@ -36,6 +36,13 @@ def read_cmd_argv (argv):
 #==============================================================================
 def run_post(argv):
 
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))    
+    from hsofs import plot
+    
+    doMaxele   = False
+    doPS       = False
+    doStations = True
+    
     #Receive command line arguments
     args = read_cmd_argv(argv)
 
@@ -84,60 +91,76 @@ def run_post(argv):
     advTrk = csdlpy.atcf.readTrack(advisoryTrackFile)
     
     # Max elevations
-    tracks = []
-    for e in ens:
+    if doMaxele:
+        tracks = []
+        for e in ens:
+            timestamp()
+            
+            maxeleFile = \
+                    hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                    args.stormCycle + '.' + e + '.fields.maxele.nc'
+            trackFile = \
+                    hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                    args.stormCycle + '.' + e + '.surfaceforcing'
+
+            maxele = csdlpy.estofs.getFieldsWaterlevel (maxeleFile, 'zeta_max')    
+            track = csdlpy.atcf.readTrack(trackFile)        
+            tracks.append( track )
+            
+            titleStr = 'HSOFS experimental ' + args.stormID + \
+                    '.' + args.stormCycle + '.' + e + ' MAX ELEV ' + \
+                    pp['General']['units'] + ', ' + pp['General']['datum']
+
+            plotFile = args.outputDir + args.stormID +'.'+ \
+                        args.stormCycle +'.'+ e +'.maxele.png'
+            plot.maxele (maxele, track, advTrk, grid, coast, pp, titleStr, plotFile)
+            csdlpy.transfer.upload(plotFile,\
+                                   'svinogradov@emcrzdm',\
+                                   '/home/ftp/polar/estofs/hsofs/.')
+    
+    # Plot ens statistics: maxPS and rangePS
+    if doPS:
         timestamp()
-
-        maxeleFile = \
-                hsofsPath + 'hsofs.' + args.stormID + '.' + \
-                args.stormCycle + '.' + e + '.fields.maxele.nc'
-        trackFile = \
-                hsofsPath + 'hsofs.' + args.stormID + '.' + \
-                args.stormCycle + '.' + e + '.surfaceforcing'
-
-        maxele = csdlpy.estofs.getFieldsWaterlevel (maxeleFile, 'zeta_max')    
-        track = csdlpy.atcf.readTrack(trackFile)        
-        tracks.append( track )
-        
+        psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                    args.stormCycle + '.fields.maxPS.nc'
+        maxPS = csdlpy.estofs.getFieldsWaterlevel (psFile, 'zeta_max')
         titleStr = 'HSOFS experimental ' + args.stormID + \
-                '.' + args.stormCycle + '.' + e + ' MAX ELEV ' + \
-                pp['General']['units'] + ', ' + pp['General']['datum']
+                    '.' + args.stormCycle + '.maxPS MAX ELEV ' + \
+                    pp['General']['units'] + ', ' + pp['General']['datum']
+        plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.maxPS.png'
+        plot.maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
+        csdlpy.transfer.upload(plotFile,\
+                               'svinogradov@emcrzdm',\
+                               '/home/ftp/polar/estofs/hsofs/.')
 
-        plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.'+ e +'.maxele.png'
-        plot_maxele (maxele, track, advTrk, grid, coast, pp, titleStr, plotFile)
-        csdlpy.transfer.upload(plotFile,'svinogradov@emcrzdm','/home/ftp/polar/estofs/hsofs/.')
+        timestamp()
+        psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                    args.stormCycle + '.fields.rangePS.nc'
+        maxPS = csdlpy.estofs.getFieldsWaterlevel (psFile, 'zeta_max')
+        titleStr = 'HSOFS experimental ' + args.stormID + \
+                    '.' + args.stormCycle + '.rangePS MAX ELEV ' + \
+                    pp['General']['units']
+        plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.rangePS.png'
+        pp['Limits']['cmax'] = 2.0
+        plot.maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
+        csdlpy.transfer.upload(plotFile,\
+                               'svinogradov@emcrzdm',\
+                               '/home/ftp/polar/estofs/hsofs/.')
 
-    # Plot ens statistics: maxPS
-    timestamp()
-    psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
-                args.stormCycle + '.fields.maxPS.nc'
-    maxPS = csdlpy.estofs.getFieldsWaterlevel (psFile, 'zeta_max')
-    titleStr = 'HSOFS experimental ' + args.stormID + \
-                '.' + args.stormCycle + '.maxPS MAX ELEV ' + \
-                pp['General']['units'] + ', ' + pp['General']['datum']
-    plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.maxPS.png'
-    plot_maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
-    csdlpy.transfer.upload(plotFile,'svinogradov@emcrzdm','/home/ftp/polar/estofs/hsofs/.')
-
-    # Plot ens statistics: rangePS
-    timestamp()
-    psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
-                args.stormCycle + '.fields.rangePS.nc'
-    maxPS = csdlpy.estofs.getFieldsWaterlevel (psFile, 'zeta_max')
-    titleStr = 'HSOFS experimental ' + args.stormID + \
-                '.' + args.stormCycle + '.rangePS MAX ELEV ' + pp['General']['units']
-    plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.rangePS.png'
-    pp['Limits']['cmax'] = 2.0
-    plot_maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
-    csdlpy.transfer.upload(plotFile,'svinogradov@emcrzdm','/home/ftp/polar/estofs/hsofs/.')
-
-    # Read all time series for all ensembles
-    cwl = []
-    for e in ens:
-        stationsFile = \
-                hsofsPath + 'hsofs.' + args.stormID + '.' + \
-                args.stormCycle + '.' + e + '.points.waterlevel.nc'
-        cwl.append ( csdlpy.estofs.getPointsWaterlevel (stationsFile) )   
+    # Plot time series for all ensembles
+    if doStations:
+        timestamp()
+        ensFiles = []
+        titleStr = 'HSOFS experimental ' + args.stormID + \
+                    '.' + args.stormCycle + ' CWL ' + \
+                    pp['General']['units']
+        plotPath = args.outputDir + args.stormID +'.'+ args.stormCycle +'.ts.'
+        
+        for e in ens:
+            ensFiles.append(hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                            args.stormCycle + '.' + e + '.points.waterlevel.nc')
+            
+        plot.stations (ensFiles, pp, titleStr, plotPath)
     # TODO plot time series    
 
     #7. Clean up temporary folder
