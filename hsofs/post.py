@@ -13,9 +13,9 @@ import datetime
 
 #==============================================================================
 def timestamp():
-    print '-    -'
+    print '------'
     print '[Time]: ' + str(datetime.datetime.utcnow()) + ' UTC'
-    print '-    -'
+    print '------'
     
 #==============================================================================
 def read_cmd_argv (argv):
@@ -25,9 +25,11 @@ def read_cmd_argv (argv):
     parser.add_argument('-i','--hsofsDir',       required=True)
     parser.add_argument('-s','--stormID',        required=True)
     parser.add_argument('-z','--stormCycle',     required=True)    
-    parser.add_argument('-o','--outputDir',      required=False)
-    parser.add_argument('-t','--tmpDir',         required=False)
-    parser.add_argument('-p','--pltCfgFile',     required=False)
+    parser.add_argument('-o','--outputDir',      required=True)
+    parser.add_argument('-t','--tmpDir',         required=True)
+    parser.add_argument('-p','--pltCfgFile',     required=True)
+    parser.add_argument('-u','--ftpLogin',       required=True)
+    parser.add_argument('-f','--ftpPath',        required=True)
     
     args = parser.parse_args()    
     print '[info]: hsofs_post.py is configured with :', args
@@ -39,8 +41,7 @@ def run_post(argv):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))    
     from hsofs import plot
     
-    doMaxele   = False
-    doPS       = False
+    doMaxele   = True
     doStations = True
     
     #Receive command line arguments
@@ -53,7 +54,9 @@ def run_post(argv):
         return
     
     ens   = [] #Compile the list of available ensemble members
-    fls   = glob.glob(hsofsPath + '*.surfaceforcing')    
+
+    fls   = glob.glob(hsofsPath + 'hsofs.' + args.stormID + '.' + \
+                    args.stormCycle + '*.surfaceforcing')    
     for f in fls:
         s = os.path.basename(f).split('.')
         ens.append(s[3] +'.'+ s[4] +'.'+ s[5] +'.'+ s[6])
@@ -104,7 +107,7 @@ def run_post(argv):
                     args.stormCycle + '.' + e + '.surfaceforcing'
 
             maxele = csdlpy.estofs.getFieldsWaterlevel (maxeleFile, 'zeta_max')    
-            track = csdlpy.atcf.readTrack(trackFile)        
+            track = csdlpy.atcf.readTrack(trackFile)       
             tracks.append( track )
             
             titleStr = 'HSOFS experimental ' + args.stormID + \
@@ -114,12 +117,10 @@ def run_post(argv):
             plotFile = args.outputDir + args.stormID +'.'+ \
                         args.stormCycle +'.'+ e +'.maxele.png'
             plot.maxele (maxele, track, advTrk, grid, coast, pp, titleStr, plotFile)
-            csdlpy.transfer.upload(plotFile,\
-                                   'svinogradov@emcrzdm',\
-                                   '/home/ftp/polar/estofs/hsofs/.')
+            csdlpy.transfer.upload(plotFile, args.ftpLogin, args.ftpPath)
     
     # Plot ens statistics: maxPS and rangePS
-    if doPS:
+    try:
         timestamp()
         psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
                     args.stormCycle + '.fields.maxPS.nc'
@@ -129,13 +130,12 @@ def run_post(argv):
                     pp['General']['units'] + ', ' + pp['General']['datum']
         plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.maxPS.png'
         plot.maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
-        csdlpy.transfer.upload(plotFile,\
-                               'svinogradov@emcrzdm',\
-                               '/home/ftp/polar/estofs/hsofs/.')
+        csdlpy.transfer.upload(plotFile, args.ftpLogin, args.ftpPath)
 
         timestamp()
         psFile = hsofsPath + 'hsofs.' + args.stormID + '.' + \
                     args.stormCycle + '.fields.rangePS.nc'
+
         maxPS = csdlpy.estofs.getFieldsWaterlevel (psFile, 'zeta_max')
         titleStr = 'HSOFS experimental ' + args.stormID + \
                     '.' + args.stormCycle + '.rangePS MAX ELEV ' + \
@@ -143,9 +143,9 @@ def run_post(argv):
         plotFile = args.outputDir + args.stormID +'.'+ args.stormCycle +'.rangePS.png'
         pp['Limits']['cmax'] = 2.0
         plot.maxele (maxPS, tracks, advTrk, grid, coast, pp, titleStr, plotFile)
-        csdlpy.transfer.upload(plotFile,\
-                               'svinogradov@emcrzdm',\
-                               '/home/ftp/polar/estofs/hsofs/.')
+        csdlpy.transfer.upload(plotFile, args.ftpLogin, args.ftpPath)
+    except:
+        print '[error]: ensemble max and range were NOT plotted.'
 
     # Plot time series for all ensembles
     if doStations:
@@ -160,7 +160,7 @@ def run_post(argv):
             ensFiles.append(hsofsPath + 'hsofs.' + args.stormID + '.' + \
                             args.stormCycle + '.' + e + '.points.waterlevel.nc')
             
-        plot.stations (ensFiles, pp, titleStr, plotPath)
+        plot.stations (ensFiles, ens, pp, titleStr, plotPath, args)
     # TODO plot time series    
 
     #7. Clean up temporary folder
