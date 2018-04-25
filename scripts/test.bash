@@ -1,16 +1,25 @@
 #!/bin/bash
 
-export platform="/users/svinogra/mirrors/wcoss/surge"
+## Load Python 2.7.13
+#module use /usrx/local/dev/modulefiles
+#module load python/2.7.13
+
+export pyPath="/usrx/local/dev/python/2.7.13/bin"
+export platform=""
 
 export myModules=${platform}"/gpfs/hps3/nos/noscrub/nwprod/csdlpy-1.5.1"
 export pythonCode=${platform}"/gpfs/hps3/nos/noscrub/nwprod/hsofs-1.5.1/hsofs/post.py"
 export logFile=${platform}"/gpfs/hps3/nos/noscrub/polar/hsofs/hsofs_post.log"
 
-export hsofsDir=${platform}"/gpfs/hps/nco/ops/com/hsofs/prod/"
-export stormID="al882018"
-export stormCycle="2018022112"
+export hsofsDir=${platform}"/gpfs/hps3/nos/noscrub/Yuji.Funakoshi/Dev-hsofs.v2.0.1/com/hsofs/test/"
+export stormID="al872018"
+export stormCycle="2018050412"
 export outputDir=${platform}"/gpfs/hps3/nos/noscrub/polar/hsofs/"
-export tmpDir=${platform}"/gpfs/hps3/nos/noscrub/tmp/"
-export pltCfgFile="/users/svinogra/mirrors/config.plot.hsofs.ini"
+export tmpDir=${platform}"/gpfs/hps3/nos/noscrub/tmp/hsofs/"
+export pltCfgFile=${platform}"/gpfs/hps3/nos/noscrub/nwprod/hsofs-1.5.1/scripts/config.plot.hsofs.cora.ini"
 
-PYTHONPATH=${myModules} python -W ignore ${pythonCode} -i ${hsofsDir} -s ${stormID} -z ${stormCycle} -o ${outputDir} -t ${tmpDir} -p ${pltCfgFile} > ${logFile}
+export ftpLogin="svinogradov@emcrzdm"
+export ftpPath="/home/www/polar/estofs/hsofs/"${stormID}"."${stormCycle}
+
+PYTHONPATH=${myModules} ${pyPath}/python -W ignore ${pythonCode} -i ${hsofsDir} -s ${stormID} -z ${stormCycle} -o ${outputDir} -t ${tmpDir} -p ${pltCfgFile} -u ${ftpLogin} -f ${ftpPath} #> ${logFile}
+
