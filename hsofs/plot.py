@@ -56,13 +56,17 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
 
     f = csdlpy.plotter.plotMap(lonlim, latlim, fig_w=10., coast=coast)
     csdlpy.plotter.addSurface (grid, maxele['value'],clim=clim)
+    ax = f.gca()
+    csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
+    csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
     
-    csdlpy.plotter.plotTrack(advTrk, color='k',linestyle='--',markersize=1,zorder=11)
     if type(tracks) is list:
         for t in tracks:
-            csdlpy.plotter.plotTrack(t,  color='r',linestyle='-',markersize=1,zorder=10)
+            csdlpy.atcf.plot.track(ax, t, color='r',linestyle='-',markersize=1,zorder=10)
+            csdlpy.atcf.plot.size (ax, t, 'neq64',color='r',zorder=10)
     else:
-        csdlpy.plotter.plotTrack(tracks, color='r',linestyle='-',markersize=1,zorder=10)
+        csdlpy.atcf.plot.track(ax, tracks, color='r',linestyle='-',markersize=1,zorder=10)
+        csdlpy.atcf.plot.size (ax, tracks, 'neq64',color='r',zorder=10)
     
     plt.text (lonlim[0]+0.01, latlim[0]+0.01, titleStr )
     if not np.isnan(maxmax):
