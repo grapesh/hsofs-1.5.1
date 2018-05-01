@@ -91,7 +91,7 @@ def run_post(argv):
     timestamp()
     grid   = csdlpy.adcirc.readGrid(gridFile)
     coast  = csdlpy.plotter.readCoastline(coastlineFile)
-    advTrk = csdlpy.atcf.readTrack(advisoryTrackFile)
+    advTrk = csdlpy.atcf.read.track(advisoryTrackFile)
     
     # Max elevations
     if doMaxele:
@@ -107,7 +107,7 @@ def run_post(argv):
                     args.stormCycle + '.' + e + '.surfaceforcing'
 
             maxele = csdlpy.estofs.getFieldsWaterlevel (maxeleFile, 'zeta_max')    
-            track = csdlpy.atcf.readTrack(trackFile)       
+            track = csdlpy.atcf.read.track(trackFile)       
             tracks.append( track )
             
             titleStr = 'HSOFS experimental ' + args.stormID + \
