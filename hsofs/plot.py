@@ -88,6 +88,90 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     plt.close(f) 
 
 #==============================================================================
+def maxwind (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
+
+    # Default plotting limits, based on advisory track, first position
+    lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
+    latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
+    clim   = 0.,50.
+    try:
+        lonlim = float(pp['Limits']['lonmin']),float(pp['Limits']['lonmax'])
+        latlim = float(pp['Limits']['latmin']),float(pp['Limits']['latmax'])
+        clim   = float(pp['Wind']['cmin']),  float(pp['Wind']['cmax'])
+    except: #default limits, in case if not specified in ini file
+        pass
+    # Find maximal maxele value within the coord limits
+    maxmax = np.max(maxele['value'][np.where( \
+                   (lonlim[0] <= maxele['lon']) & (maxele['lon'] <= lonlim[1]) & \
+                   (latlim[0] <= maxele['lat']) & (maxele['lat'] <= latlim[1]))])
+    if isinstance(maxmax,(list,)):
+        maxmax = maxmax[0]
+    lonmax = maxele['lon'][np.where(maxele['value']==maxmax)]
+    latmax = maxele['lat'][np.where(maxele['value']==maxmax)]
+    if isinstance(lonmax,(list,)):
+        lonmax = lonmax[0]
+        latmax = latmax[0]
+    if maxmax is np.ma.masked:
+        maxmax = np.nan
+    print '[info]: max maxwvel = ',np.str(maxmax),'at ', np.str(lonmax),'x', np.str(latmax)
+
+    f = csdlpy.plotter.plotMap(lonlim, latlim, fig_w=10., coast=coast)
+    csdlpy.plotter.addSurface (grid, maxele['value'],clim=clim)
+    ax = f.gca()
+    csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
+    csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
+
+    if type(tracks) is list:
+        for t in tracks:
+            csdlpy.atcf.plot.track(ax, t, color='r',linestyle='-',markersize=1,zorder=10)
+            csdlpy.atcf.plot.size (ax, t, 'neq64',color='r',zorder=10)
+    else:
+        csdlpy.atcf.plot.track(ax, tracks, color='r',linestyle='-',markersize=1,zorder=10)
+        csdlpy.atcf.plot.size (ax, tracks, 'neq64',color='r',zorder=10)
+
+    plt.text (lonlim[0]+0.01, latlim[0]+0.01, titleStr )
+    if not np.isnan(maxmax):
+        maxStr = 'MAX VAL='+ np.str(np.round(maxmax,1)) + ' '
+        try:
+            maxStr = maxStr + ' m/s' #pp['General']['units'] +', '+ pp['General']['datum']
+        except:
+            pass # in case if there is a problem with pp
+        plt.text (lonlim[0]+0.01, latlim[1]-0.1, maxStr)
+
+    plt.plot(lonmax, latmax, 'ow',markerfacecolor='k',markersize=10)
+    plt.plot(lonmax, latmax, 'ow',markerfacecolor='r',markersize=5)
+    plt.text (lonmax,latmax, str(np.round(maxmax,1)),color='k',fontsize=10)
+
+    #add 10,20,30 nm radii to max val to aid RMW computation
+    xiso, yiso = computeCircle(lonmax, latmax, 10.)
+    plt.plot(xiso, yiso, color='w',ls='dashed',zorder=100)
+    xiso, yiso = computeCircle(lonmax, latmax, 20.)
+    plt.plot(xiso, yiso, color='w',ls='dashed',zorder=100)
+    xiso, yiso = computeCircle(lonmax, latmax, 30.)
+    plt.plot(xiso, yiso, color='w',ls='dashed',zorder=100)
+
+    try:
+        csdlpy.plotter.save(titleStr, plotFile)
+    except:
+        print '[error]: cannot save maxele figure.'
+
+    plt.close(f)
+
+#==============================================================================
+def computeCircle(xo, yo, radius_nm):
+    radius = radius_nm*1.852
+    da   = np.pi/180.
+    R    = 6370.
+    xiso = []
+    yiso = []
+    for a in np.arange(0.,2.*np.pi, da):
+        dx = 180./(np.pi*R)*radius/np.cos(np.radians(yo))
+        dy = 180./(np.pi*R)*radius
+        xiso.append(xo + dx*np.cos(a))
+        yiso.append(yo + dy*np.sin(a))
+    return xiso, yiso
+
+#==============================================================================
 def stations (ensFiles, ensNames, pp, titleStr, plotPath, args):
 
     clim = -0.5, 3.5
@@ -151,6 +235,20 @@ def stations (ensFiles, ensNames, pp, titleStr, plotPath, args):
             col, lin = ensColorsAndLines (e, plotOfficial)
             ax.plot(cwl[e]['time'], cwl[e]['zeta'][:,n], 
                       color=col, linewidth=lin, label=ensNames[e])
+
+            if 'ofcl' in ensFiles[e] or len(ensFiles) < 3:
+                peak_val = np.nanmax( cwl[e]['zeta'][:,n] )
+                peak_dat = cwl[e]['time'][ np.argmax(cwl[e]['zeta'][:,n]) ]
+
+                # Plot peak forecast value
+                ax.text(peak_dat, 1.05*peak_val,
+                        str(np.round(peak_val,1)) + "m (" +
+                        str(np.round(3.28084*peak_val,1)) +"ft)", color='navy',fontsize=7)
+                ax.plot([peak_dat, peak_dat], [ylim[0], peak_val], '--',color='navy')
+                peak_str = str(peak_dat.hour).zfill(2) + ':' + str(peak_dat.minute).zfill(2) + 'z'
+                ax.text(peak_dat+dt(hours=0.5), ylim[0], peak_str ,color='navy', fontsize=7)
+                ax.plot(peak_dat, peak_val, 'o',markeredgecolor='navy',markerfacecolor='b')
+
 
         ax.legend(bbox_to_anchor=(0.8, 0.82), loc='center left',prop={'size':6})
         ax.text(xlim[0],ylim[1]+0.05,'NOAA / OCEAN SERVICE')

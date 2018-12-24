@@ -61,8 +61,8 @@ def run_post(argv):
     for f in fls:
         s = os.path.basename(f).split('.')
         print '[debug]: ', s
-        ens.append(s[3] +'.'+ s[4] +'.'+ s[5] +'.'+ s[6])
-        if s[5] == 'ofcl':
+        ens.append(s[3])
+        if s[3] == 'nhctrk':
             advisoryTrackFile = f
     print '[info]: ', str(len(ens)),' hsofs ensembles detected: ', ens
            

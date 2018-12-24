@@ -49,7 +49,7 @@ def run_post(argv):
     args = read_cmd_argv(argv)
 
     #Locate hsofs path
-    hsofsPath = args.hsofsDir +'hsofs.'+ args.stormCycle[:-2] +'/'
+    hsofsPath = args.hsofsDir +'hsofs.'+ args.stormCycle[:-2] + '/' #+'.hindcast/'
     if not os.path.exists(hsofsPath):
         print '[error]: hsofs path ' +hsofsPath+ ' does not exist. Exiting'
         return
