@@ -102,7 +102,7 @@ def maxwind (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
 
     lonlim = np.min(grid['lon']), np.max(grid['lon'])
     latlim = np.min(grid['lat']), np.max(grid['lat'])
-    clim   = 0.,4.5
+    clim   = 0.,50.
 
     try:
         lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
