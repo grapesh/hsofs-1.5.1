@@ -30,9 +30,16 @@ def ensColorsAndLines (e, isMain=False):
 def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     
     # Default plotting limits, based on advisory track, first position
-    lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
-    latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
+    lonlim = np.min(grid['lon']), np.max(grid['lon'])
+    latlim = np.min(grid['lat']), np.max(grid['lat'])
     clim   = 0.,4.5
+
+    try:
+        lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
+        latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
+    except:
+        pass
+
     try:
         lonlim = float(pp['Limits']['lonmin']),float(pp['Limits']['lonmax'])
         latlim = float(pp['Limits']['latmin']),float(pp['Limits']['latmax'])
@@ -57,8 +64,11 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     f = csdlpy.plotter.plotMap(lonlim, latlim, fig_w=10., coast=coast)
     csdlpy.plotter.addSurface (grid, maxele['value'],clim=clim)
     ax = f.gca()
-    csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
-    csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
+    try:
+        csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
+        csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
+    except:
+        print '[warn]: advTrack not plotted...'
     
     if type(tracks) is list:
         for t in tracks:
@@ -197,8 +207,10 @@ def stations (ensFiles, ensNames, pp, titleStr, plotPath, args):
                 datetime.strptime(pp['Dates']['finish'],'%Y%m%d')
         now   = dates[1]
     except:
-        now   = datetime.utcnow()
-        dates = (now-dt(days=1),now)
+        #now   = datetime.utcnow()
+        #dates = (now-dt(days=1),now)
+        dates  = (cwl[0]['time'][0]-dt(days=1), cwl[0]['time'][-1]+dt(days=1))
+        now    = dates[1]
 
     # Plot limits
     xlim =    min(dates[0],  cwl[0]['time'][0] ),    \
@@ -208,6 +220,7 @@ def stations (ensFiles, ensNames, pp, titleStr, plotPath, args):
     for n in range(nStations):
 
         fullStationName = cwl[0]['stations'][n]
+        print '[info]: plotting station ', fullStationName 
         # Get datums
         datums, floodlevels, nosid, stationTitle = \
             csdlpy.obs.parse.setDatumsFloodLevels (fullStationName, masterListLocal)
