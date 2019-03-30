@@ -30,16 +30,9 @@ def ensColorsAndLines (e, isMain=False):
 def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     
     # Default plotting limits, based on advisory track, first position
-    lonlim = np.min(grid['lon']), np.max(grid['lon'])
-    latlim = np.min(grid['lat']), np.max(grid['lat'])
+    lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
+    latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
     clim   = 0.,4.5
-
-    try:
-        lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
-        latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
-    except:
-        pass
-
     try:
         lonlim = float(pp['Limits']['lonmin']),float(pp['Limits']['lonmax'])
         latlim = float(pp['Limits']['latmin']),float(pp['Limits']['latmax'])
@@ -64,11 +57,8 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     f = csdlpy.plotter.plotMap(lonlim, latlim, fig_w=10., coast=coast)
     csdlpy.plotter.addSurface (grid, maxele['value'],clim=clim)
     ax = f.gca()
-    try:
-        csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
-        csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
-    except:
-        print '[warn]: advTrack not plotted...'
+    csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
+    csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
     
     if type(tracks) is list:
         for t in tracks:
@@ -100,16 +90,10 @@ def maxele (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
 #==============================================================================
 def maxwind (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
 
-    lonlim = np.min(grid['lon']), np.max(grid['lon'])
-    latlim = np.min(grid['lat']), np.max(grid['lat'])
+    # Default plotting limits, based on advisory track, first position
+    lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
+    latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
     clim   = 0.,50.
-
-    try:
-        lonlim = advTrk['lon'][0]-3.5, advTrk['lon'][0]+3.5
-        latlim = advTrk['lat'][0]-0.5, advTrk['lat'][0]+6.5
-    except:
-        pass
-
     try:
         lonlim = float(pp['Limits']['lonmin']),float(pp['Limits']['lonmax'])
         latlim = float(pp['Limits']['latmin']),float(pp['Limits']['latmax'])
@@ -134,11 +118,8 @@ def maxwind (maxele, tracks, advTrk, grid, coast, pp, titleStr, plotFile):
     f = csdlpy.plotter.plotMap(lonlim, latlim, fig_w=10., coast=coast)
     csdlpy.plotter.addSurface (grid, maxele['value'],clim=clim)
     ax = f.gca()
-    try:
-        csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
-        csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
-    except:
-        print '[warn]: advTrack not plotted...'
+    csdlpy.atcf.plot.track(ax, advTrk, color='k',linestyle='--',markersize=1,zorder=11)
+    csdlpy.atcf.plot.size (ax, advTrk, 'neq64', color='k',zorder=11)
 
     if type(tracks) is list:
         for t in tracks:
